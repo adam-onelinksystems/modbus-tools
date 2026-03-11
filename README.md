@@ -17,8 +17,9 @@ Small Modbus utilities for controller discovery and polling.
   - Based on the Genmon Evolution Liquid Cooled register map
 
 - `read_tx_datetime.py`
-  - Reads or writes current RTC date/time on a TX transfer switch controller
+  - Reads or writes current RTC time/date fields on a TX transfer switch controller
   - Uses discovered RTC registers 200-203
+  - Time decode is confirmed; date/year mapping is only partially solved
 
 ### docs/
 - `tx_transfer_switch_registers.csv`
