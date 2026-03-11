@@ -156,6 +156,34 @@ def read_regs(port: str, baud: int, slave: int, start_reg: int, count: int, time
     return parse_response(resp, slave, 3, count)
 
 
+def read_reg(ser, slave: int, register: int):
+    req = build_request(slave, 3, register, 1)
+    ser.reset_input_buffer()
+    ser.write(req)
+    ser.flush()
+    resp = ser.read(7)
+    return parse_response(resp, slave, 3, 1)[0]
+
+
+def read_exercise_regs(port: str, baud: int, slave: int, timeout: float):
+    try:
+        return read_regs(port, baud, slave, 650, 7, timeout)
+    except Exception as e:
+        print(f"Block read 650-656 failed: {e} | falling back to single-register reads")
+        values = []
+        with serial.Serial(
+            port=port,
+            baudrate=baud,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=timeout,
+        ) as ser:
+            for register in range(650, 657):
+                values.append(read_reg(ser, slave, register))
+        return values
+
+
 def write_single(ser, slave: int, register: int, value: int, allow_value_mismatch: bool = False):
     req = build_write_single_request(slave, register, value)
     ser.reset_input_buffer()
@@ -195,7 +223,7 @@ def main():
     slave = int(str(args.slave), 0)
 
     if args.set:
-        current = read_regs(args.port, args.baud, slave, 650, 7, args.timeout)
+        current = read_exercise_regs(args.port, args.baud, slave, args.timeout)
         new_values = [
             current[0],
             args.type if args.type is not None else current[1],
@@ -225,7 +253,7 @@ def main():
         print("Waiting 1 second before verification...")
         time.sleep(1.0)
 
-    values = read_regs(args.port, args.baud, slave, 650, 7, args.timeout)
+    values = read_exercise_regs(args.port, args.baud, slave, args.timeout)
     print_schedule(values)
 
 
