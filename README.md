@@ -27,7 +27,7 @@ Small Modbus utilities for controller discovery and polling.
 - Start register: `500`
 - Count: `300`
 - Unlock register: `100`
-- Unlock value: `7123`
+- Unlock value: `3219`
 - Verify register: `101`
 
 ## Example usage
