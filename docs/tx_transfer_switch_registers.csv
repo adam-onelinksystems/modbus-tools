@@ -1,6 +1,10 @@
 register,function,bit_or_note,status,confidence,observed_value_examples,working_guess
 100,Security Register,"Accessible from write single register (0x06)",known,high,,Security/unlock command register
 101,Security Level,"Current unlocked security level",known,high,,Current unlocked security level/status
+200,RTC Date (day/month),"Packed bytes: high=day low=month",known,high,"0x1A03 -> 26/03; 0x1F0C -> 31/12",Controller RTC date day/month
+201,RTC Year / Weekday,"Packed bytes: high=2-digit year low=weekday code",guessed,medium,"0x0E07; 0x1F04",Controller RTC year plus weekday code (low byte encoding still being validated)
+202,RTC Time (hour/minute),"Packed bytes: high=hour low=minute",known,high,"0x0D05 -> 13:05; 0x0D09 -> 13:09",Controller RTC time hour/minute
+203,RTC Seconds,"0-59 seconds counter",known,high,"4; 9; 15; 55; 1; 7",Controller RTC seconds
 500,ATS Status,"0: Source 1 OK; 1: Source 2 OK; 2: On Primary Source; 3: PS Loss Delay; 4: Wait for Secondary Source OK; 5: Signal before transfer to Secondary Source; 6: Operate to Time Delay Neutral (destination Secondary Source); 7: Syncing (destination Secondary Source); 8: Operating to Secondary Source; 9: On Secondary Source; 10: Primary Return Delay; 11: Signal before transfer to Primary Source; 12: Operating to Neutral (destination Primary Source); 13: Syncing (destination Primary Source); 14: Operating contact to Primary Source",known,high,"512","Bit 9 set in scans -> On Secondary Source"
 501,ATS Timer,"In seconds",known,high,"0",ATS timer seconds
 502,Contactor Status,"0: Contactor in S1; 1: Contactor in S2; 2: Contactor in Neutral",known,high,"4","Bit 2 set in scans -> Contactor in Neutral"
