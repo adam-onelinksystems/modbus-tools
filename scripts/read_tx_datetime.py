@@ -3,20 +3,15 @@
 Read or write the current date/time on a TX transfer switch controller over Modbus RTU.
 
 RTC block discovered from field scans:
-  200 = packed day/month   (high byte = day, low byte = month)
+  200 = packed year/month  (high byte = 2-digit year, low byte = month)
   201 = packed day/weekday (high byte = day-of-month, low byte = weekday code)
   202 = packed hour/minute (high byte = hour, low byte = minute)
   203 = seconds
 
-Notes:
-  - Time mapping (202/203) is confirmed.
-  - Date mapping shows day/month in 200 and day/weekday in 201.
-  - Year is not yet decoded from this RTC block and is not written by this helper.
-
 Examples:
   python3 read_tx_datetime.py
   python3 read_tx_datetime.py --port /dev/tty.usbserial-FT4WX7ID --slave 240
-  python3 read_tx_datetime.py --set 2031-12-31T13:09:05 --weekday 4
+  python3 read_tx_datetime.py --set 2031-03-15T13:20:11 --weekday 7
 """
 
 import argparse
@@ -148,18 +143,18 @@ def write_single(ser, slave: int, register: int, value: int):
 
 
 def decode_regs(reg200: int, reg201: int, reg202: int, reg203: int):
-    day_a = (reg200 >> 8) & 0xFF
+    year = (reg200 >> 8) & 0xFF
     month = reg200 & 0xFF
-    day_b = (reg201 >> 8) & 0xFF
+    day = (reg201 >> 8) & 0xFF
     weekday_code = reg201 & 0xFF
     hour = (reg202 >> 8) & 0xFF
     minute = reg202 & 0xFF
     second = reg203 & 0xFFFF
-    return day_a, month, day_b, weekday_code, hour, minute, second
+    return year, month, day, weekday_code, hour, minute, second
 
 
-def encode_regs(dt_obj: dt.datetime, weekday_code: int, current_reg201: int):
-    reg200 = ((dt_obj.day & 0xFF) << 8) | (dt_obj.month & 0xFF)
+def encode_regs(dt_obj: dt.datetime, weekday_code: int):
+    reg200 = (((dt_obj.year % 100) & 0xFF) << 8) | (dt_obj.month & 0xFF)
     reg201 = ((dt_obj.day & 0xFF) << 8) | (weekday_code & 0xFF)
     reg202 = ((dt_obj.hour & 0xFF) << 8) | (dt_obj.minute & 0xFF)
     reg203 = dt_obj.second & 0xFFFF
@@ -182,8 +177,7 @@ def main():
         if args.weekday is None:
             raise SystemExit("--weekday is required with --set")
         new_dt = dt.datetime.fromisoformat(args.set_datetime)
-        current = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
-        reg200, reg201, reg202, reg203 = encode_regs(new_dt, args.weekday, current[1])
+        reg200, reg201, reg202, reg203 = encode_regs(new_dt, args.weekday)
         with serial.Serial(
             port=args.port,
             baudrate=args.baud,
@@ -197,13 +191,12 @@ def main():
             write_single(ser, slave, 202, reg202)
             write_single(ser, slave, 203, reg203)
         print(f"Wrote registers: 200=0x{reg200:04X} 201=0x{reg201:04X} 202=0x{reg202:04X} 203=0x{reg203:04X}")
-        print("Note: year is not currently decoded/written by this helper.")
 
     reg200, reg201, reg202, reg203 = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
-    day_a, month, day_b, weekday_code, hour, minute, second = decode_regs(reg200, reg201, reg202, reg203)
+    year, month, day, weekday_code, hour, minute, second = decode_regs(reg200, reg201, reg202, reg203)
 
     print(f"Registers: 200=0x{reg200:04X} 201=0x{reg201:04X} 202=0x{reg202:04X} 203=0x{reg203:04X}")
-    print(f"Decoded date fields: reg200 day/month={day_a:02d}/{month:02d}, reg201 day/weekday={day_b:02d}/{weekday_code}")
+    print(f"Decoded date: 20{year:02d}-{month:02d}-{day:02d} (weekday code {weekday_code})")
     print(f"Decoded time: {hour:02d}:{minute:02d}:{second:02d}")
 
 
