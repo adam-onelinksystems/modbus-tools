@@ -108,7 +108,6 @@ def read_chunk(ser, slave: int, function_code: int, start_reg: int, quantity: in
     ser.reset_input_buffer()
     ser.write(req)
     ser.flush()
-    time.sleep(0.03)
     resp = ser.read(expected_len)
     return parse_response(resp, slave, function_code, quantity)
 
@@ -119,7 +118,6 @@ def write_single_register(ser, slave: int, register: int, value: int, allow_valu
     ser.reset_input_buffer()
     ser.write(req)
     ser.flush()
-    time.sleep(0.03)
     resp = ser.read(expected_len)
     if len(resp) != expected_len:
         raise ValueError(f"short/long write response: got {len(resp)} bytes expected {expected_len}")
@@ -257,7 +255,7 @@ def main():
     parser.add_argument("--start", type=int, default=500, help="start register")
     parser.add_argument("--count", type=int, default=300, help="number of registers to scan")
     parser.add_argument("--chunk", type=int, default=20, help="registers per chunk read")
-    parser.add_argument("--timeout", type=float, default=0.35)
+    parser.add_argument("--timeout", type=float, default=0.2)
     parser.add_argument("--pause", type=float, default=0.0, help="pause between reads")
     parser.add_argument("--interval", type=float, default=0.0, help="repeat poll interval seconds; 0 = single scan")
     parser.add_argument("--watch", action="store_true", help="on repeated polls, print only changed values after first pass")
