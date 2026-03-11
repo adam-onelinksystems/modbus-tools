@@ -8,6 +8,10 @@ RTC block discovered from field scans:
   202 = packed hour/minute (high byte = hour, low byte = minute)
   203 = seconds
 
+Writes use the controller unlock register first:
+  100 = security/unlock register
+  value 3219 = confirmed unlock code for this controller
+
 Examples:
   python3 read_tx_datetime.py
   python3 read_tx_datetime.py --port /dev/tty.usbserial-FT4WX7ID --slave 240
@@ -23,6 +27,10 @@ try:
 except ImportError:
     print("Missing dependency: pyserial\nInstall with: pip install pyserial", file=sys.stderr)
     sys.exit(2)
+
+
+UNLOCK_REGISTER = 100
+UNLOCK_VALUE = 3219
 
 
 def modbus_crc(data: bytes) -> int:
@@ -95,7 +103,7 @@ def parse_response(resp: bytes, slave: int, function_code: int, quantity: int):
     return regs
 
 
-def parse_write_response(resp: bytes, slave: int, register: int, value: int):
+def parse_write_response(resp: bytes, slave: int, register: int, value: int, allow_value_mismatch: bool = False):
     expected_len = 8
     if len(resp) != expected_len:
         raise ValueError(f"short/long write response: got {len(resp)} bytes expected {expected_len}")
@@ -111,8 +119,11 @@ def parse_write_response(resp: bytes, slave: int, register: int, value: int):
         raise ValueError(f"write modbus exception fc=0x{body[1]:02X} code=0x{code:02X}")
     echoed_reg = (body[2] << 8) | body[3]
     echoed_val = (body[4] << 8) | body[5]
-    if echoed_reg != register or echoed_val != value:
+    if echoed_reg != register:
+        raise ValueError(f"write echo register mismatch reg=0x{echoed_reg:04X}")
+    if (not allow_value_mismatch) and echoed_val != value:
         raise ValueError(f"write echo mismatch reg=0x{echoed_reg:04X} val=0x{echoed_val:04X}")
+    return echoed_reg, echoed_val
 
 
 def read_regs(port: str, baud: int, slave: int, start_reg: int, count: int, timeout: float):
@@ -133,13 +144,13 @@ def read_regs(port: str, baud: int, slave: int, start_reg: int, count: int, time
     return parse_response(resp, slave, 3, count)
 
 
-def write_single(ser, slave: int, register: int, value: int):
+def write_single(ser, slave: int, register: int, value: int, allow_value_mismatch: bool = False):
     req = build_write_single_request(slave, register, value)
     ser.reset_input_buffer()
     ser.write(req)
     ser.flush()
     resp = ser.read(8)
-    parse_write_response(resp, slave, register, value)
+    return parse_write_response(resp, slave, register, value, allow_value_mismatch=allow_value_mismatch)
 
 
 def decode_regs(reg200: int, reg201: int, reg202: int, reg203: int):
@@ -186,11 +197,15 @@ def main():
             stopbits=serial.STOPBITS_ONE,
             timeout=args.timeout,
         ) as ser:
-            write_single(ser, slave, 200, reg200)
-            write_single(ser, slave, 201, reg201)
-            write_single(ser, slave, 202, reg202)
-            write_single(ser, slave, 203, reg203)
-        print(f"Wrote registers: 200=0x{reg200:04X} 201=0x{reg201:04X} 202=0x{reg202:04X} 203=0x{reg203:04X}")
+            _, unlock_echo = write_single(ser, slave, UNLOCK_REGISTER, UNLOCK_VALUE, allow_value_mismatch=True)
+            print(f"Unlock write sent to reg {UNLOCK_REGISTER}; controller echoed value 0x{unlock_echo:04X}")
+            for register, value in [(200, reg200), (201, reg201), (202, reg202), (203, reg203)]:
+                _, echoed_val = write_single(ser, slave, register, value, allow_value_mismatch=True)
+                if echoed_val == value:
+                    print(f"Wrote reg {register} = 0x{value:04X} (matching echo)")
+                else:
+                    print(f"Wrote reg {register} = 0x{value:04X} (controller echoed 0x{echoed_val:04X})")
+        print("Verifying by reading back 200-203...")
 
     reg200, reg201, reg202, reg203 = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
     year, month, day, weekday_code, hour, minute, second = decode_regs(reg200, reg201, reg202, reg203)
