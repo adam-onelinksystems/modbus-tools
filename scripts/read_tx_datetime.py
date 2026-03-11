@@ -21,6 +21,7 @@ Examples:
 import argparse
 import datetime as dt
 import sys
+import time
 
 try:
     import serial
@@ -207,6 +208,8 @@ def main():
                     print(f"Wrote reg {register} = 0x{value:04X} (controller echoed 0x{echoed_val:04X})")
         if args.weekday is None:
             print(f"No --weekday provided; preserved existing controller weekday code {weekday_code}")
+        print("Waiting 1 second before verification...")
+        time.sleep(1.0)
         print("Verifying by reading back 200-203...")
 
     reg200, reg201, reg202, reg203 = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
