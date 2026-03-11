@@ -1,0 +1,101 @@
+register,function,bit_or_note
+100,Security Register,Accessible from write single register (0x6)
+101,Security Level,Current unlocked security level
+500,ATS Status,0: Source 1 OK
+500,ATS Status,10: Primary Return Delay
+500,ATS Status,11: Signal before transfer to Primary Source
+500,ATS Status,12: Operating to neutral (destination Primary Source)
+500,ATS Status,13: Syncing (destination to primary source)
+500,ATS Status,14: Operating contact to Primary Source
+500,ATS Status,1: Source 2 OK
+500,ATS Status,2: On Primary Source
+500,ATS Status,3: PS Loss Delay
+500,ATS Status,4: Wait for Secondary Source OK
+500,ATS Status,5: Signal before transfer to Secondary Source
+500,ATS Status,6: Operate to Time Delay Neutral (destination Secondary Source)
+500,ATS Status,7: Syncing (destination to Secondary Source)
+500,ATS Status,8: Operating to Secondary Source
+500,ATS Status,9: On secondary Source
+501,ATS Timer,In seconds
+502,Contactor Status,0: Contactor in S1
+502,Contactor Status,1: Contactor in S2
+502,Contactor Status,2: Contactor in Neutral
+503,S1 Engine Status,11-0: Engine timer seconds
+503,S1 Engine Status,12: Engine Warmup
+503,S1 Engine Status,13: Engine Minimum Run
+503,S1 Engine Status,14: Engine Cooldown
+504,S2 Engine Status,11-0: Engine timer seconds
+504,S2 Engine Status,12: Engine Warmup
+504,S2 Engine Status,13: Engine Minimum Run
+504,S2 Engine Status,14: Engine Cooldown
+505,ATS test status,0: Normal Test Asserted
+505,ATS test status,2: Fast Test Asserted
+506,Exercise Timer (seconds),
+507,ATS TVSS Status,Bit 5: TVSS failure
+508,S1AB Voltage * 100,
+509,S1BC Voltage * 100,
+510,S1AC Voltage * 100,
+511,S2AB Voltage * 100,
+512,S2BC Voltage * 100,
+513,S2AC Voltage * 100,
+514,Load Current A * 10,
+515,Load Current B * 10,
+516,Load Current C * 10,
+517,Load Current N * 10,
+518,S1 kW * 10,
+519,S2 kW * 10,
+520,S1 kWh * 10,
+521,S2 kWh * 10,
+522,S1 Frequency * 10,
+523,S2 Frequency * 10,
+524,Temperature (°C) * 100,
+525,Humidity (%) * 100,
+600,Primary Source Loss Time,
+601,Primary Source Return Time,
+602,Time Delay Neutral Value,
+603,In phase Transfer,"1 for yes, 0 for no"
+604,Signal Before Transfer,
+605,Unbalance Check,
+606,Unbalance Time,
+607,Source 1 Is Engine,"1 for yes, 0 for no"
+608,Source 1 Under Voltage Dropout,
+609,Source 1 Under Voltage Pickup,
+610,Source 1 Over Voltage Dropout,
+611,Source 1 Over Voltage Pickup,
+612,Source 1 Under Frequency Dropout,
+613,Source 1 Under Frequency Pickup,
+614,Source 1 Over Frequency Dropout,
+615,Source 1 Over Frequency Pickup,
+616,Source 1 Warmup,
+617,Source 1 Minimum Run,
+618,Source 1 Cooldown,
+619,Source 1 Unbalance Drop,
+620,Source 1 Unbalance Pickup,
+621,Source 2 Is Engine,"1 for yes, 0 for no"
+622,Source 2 Under Voltage Dropout,
+623,Source 2 Under Voltage Pickup,
+624,Source 2 Over Voltage Dropout,
+625,Source 2 Over Voltage Pickup,
+626,Source 2 Under Frequency Dropout,
+627,Source 2 Under Frequency Pickup,
+628,Source 2 Over Frequency Dropout,
+629,Source 2 Over Frequency Pickup,
+630,Source 2 Warmup,
+631,Source 2 Minimum Run,
+632,Source 2 Cooldown,
+633,Source 2 Unbalance Drop,
+634,Source 2 Unbalance Pickup,
+650,Exercise Seconds,Exercise seconds
+651,Exercise Type,0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week
+652,Exercise Day,1-7 is day for weekly and 1st-4th week types; 1-14 for biweekly; Date (1-28) for monthly
+653,Exercise Hour,
+654,Exercise Minute,
+655,Exercise Duration,
+656,Exercise Xfer,"0 for no exercise, 1 for yes"
+700,Nominal Voltage,0 = 208V; 1 = 240V; 2 = 480V; 3 = 600V
+701,Nominal Frequency,0 = 50Hz; 1 = 60Hz
+702,Number Of Phases,0 = Single Phase; 1 = 3 phase
+703,Primary Source,0 = Source 1; 1 = Source 2
+704,CT Ratio,0 = 100:1; 1 = 200:1; 2 = 400:1; 3 = 600:1
+705,Heater Temperature Setpoint,
+706,Heater Humidity Setpoint,
