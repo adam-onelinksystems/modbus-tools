@@ -250,7 +250,7 @@ def main():
     parser.add_argument("--count", type=int, default=300, help="number of registers to scan")
     parser.add_argument("--chunk", type=int, default=20, help="registers per chunk read")
     parser.add_argument("--timeout", type=float, default=0.35)
-    parser.add_argument("--pause", type=float, default=0.03, help="pause between reads")
+    parser.add_argument("--pause", type=float, default=0.0, help="pause between reads")
     parser.add_argument("--interval", type=float, default=0.0, help="repeat poll interval seconds; 0 = single scan")
     parser.add_argument("--watch", action="store_true", help="on repeated polls, print only changed values after first pass")
     parser.add_argument("--csv", help="append results to CSV file")
