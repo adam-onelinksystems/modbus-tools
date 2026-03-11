@@ -27,13 +27,13 @@ register,function,bit_or_note,status,confidence,observed_value_examples,working_
 523,S2 Frequency * 10,"",known,high,"0",Source 2 frequency
 524,Temperature (°C) * 100,"",known,high,"3021;3023",Ambient/controller temperature
 525,Humidity (%) * 100,"",known,high,"4618;4611;4593",Ambient/controller humidity
-526,Unknown live analog 1A,"",guessed,low,"1276;1283;1287",Likely paired live measurement channel
-527,Unknown live analog 1B,"",guessed,low,"237;232;237",Likely paired live measurement channel
-528,Unknown live analog 2A,"",guessed,low,"1264;1268;1272",Likely paired live measurement channel
-529,Unknown live analog 2B,"",guessed,low,"269;273",Likely paired live measurement channel
-530,Unknown live analog 3A,"",guessed,low,"1264;1271;1267",Likely paired live measurement channel
-531,Unknown live analog 3B,"",guessed,low,"269",Likely paired live measurement channel
-532,Unknown / reserved,"",guessed,low,"0",Possibly unused or reserved
+526,Unknown live electrical 1A,"",guessed,medium,"1276;1283;1287;1272",Likely phase-related live electrical telemetry channel
+527,Unknown live electrical 1B,"",guessed,medium,"237;232;242;227",Likely phase-related live electrical telemetry channel
+528,Unknown live electrical 2A,"",guessed,medium,"1264;1268;1272;1270",Likely phase-related live electrical telemetry channel
+529,Unknown live electrical 2B,"",guessed,medium,"269;273",Likely phase-related live electrical telemetry channel
+530,Unknown live electrical 3A,"",guessed,medium,"1264;1271;1267;1268",Likely phase-related live electrical telemetry channel
+531,Unknown live electrical 3B,"",guessed,medium,"269;265;273",Likely phase-related live electrical telemetry channel
+532,Reserved / unused live channel,"",guessed,medium,"0",Appears unused or reserved across scans
 600,Primary Source Loss Time,"",known,high,"3",ATS program value
 601,Primary Source Return Time,"",known,high,"120",ATS program value
 602,Time Delay Neutral Value,"",known,high,"2",ATS program value
