@@ -1,101 +1,91 @@
-register,function,bit_or_note
-100,Security Register,Accessible from write single register (0x6)
-101,Security Level,Current unlocked security level
-500,ATS Status,0: Source 1 OK
-500,ATS Status,10: Primary Return Delay
-500,ATS Status,11: Signal before transfer to Primary Source
-500,ATS Status,12: Operating to neutral (destination Primary Source)
-500,ATS Status,13: Syncing (destination to primary source)
-500,ATS Status,14: Operating contact to Primary Source
-500,ATS Status,1: Source 2 OK
-500,ATS Status,2: On Primary Source
-500,ATS Status,3: PS Loss Delay
-500,ATS Status,4: Wait for Secondary Source OK
-500,ATS Status,5: Signal before transfer to Secondary Source
-500,ATS Status,6: Operate to Time Delay Neutral (destination Secondary Source)
-500,ATS Status,7: Syncing (destination to Secondary Source)
-500,ATS Status,8: Operating to Secondary Source
-500,ATS Status,9: On secondary Source
-501,ATS Timer,In seconds
-502,Contactor Status,0: Contactor in S1
-502,Contactor Status,1: Contactor in S2
-502,Contactor Status,2: Contactor in Neutral
-503,S1 Engine Status,11-0: Engine timer seconds
-503,S1 Engine Status,12: Engine Warmup
-503,S1 Engine Status,13: Engine Minimum Run
-503,S1 Engine Status,14: Engine Cooldown
-504,S2 Engine Status,11-0: Engine timer seconds
-504,S2 Engine Status,12: Engine Warmup
-504,S2 Engine Status,13: Engine Minimum Run
-504,S2 Engine Status,14: Engine Cooldown
-505,ATS test status,0: Normal Test Asserted
-505,ATS test status,2: Fast Test Asserted
-506,Exercise Timer (seconds),
-507,ATS TVSS Status,Bit 5: TVSS failure
-508,S1AB Voltage * 100,
-509,S1BC Voltage * 100,
-510,S1AC Voltage * 100,
-511,S2AB Voltage * 100,
-512,S2BC Voltage * 100,
-513,S2AC Voltage * 100,
-514,Load Current A * 10,
-515,Load Current B * 10,
-516,Load Current C * 10,
-517,Load Current N * 10,
-518,S1 kW * 10,
-519,S2 kW * 10,
-520,S1 kWh * 10,
-521,S2 kWh * 10,
-522,S1 Frequency * 10,
-523,S2 Frequency * 10,
-524,Temperature (°C) * 100,
-525,Humidity (%) * 100,
-600,Primary Source Loss Time,
-601,Primary Source Return Time,
-602,Time Delay Neutral Value,
-603,In phase Transfer,"1 for yes, 0 for no"
-604,Signal Before Transfer,
-605,Unbalance Check,
-606,Unbalance Time,
-607,Source 1 Is Engine,"1 for yes, 0 for no"
-608,Source 1 Under Voltage Dropout,
-609,Source 1 Under Voltage Pickup,
-610,Source 1 Over Voltage Dropout,
-611,Source 1 Over Voltage Pickup,
-612,Source 1 Under Frequency Dropout,
-613,Source 1 Under Frequency Pickup,
-614,Source 1 Over Frequency Dropout,
-615,Source 1 Over Frequency Pickup,
-616,Source 1 Warmup,
-617,Source 1 Minimum Run,
-618,Source 1 Cooldown,
-619,Source 1 Unbalance Drop,
-620,Source 1 Unbalance Pickup,
-621,Source 2 Is Engine,"1 for yes, 0 for no"
-622,Source 2 Under Voltage Dropout,
-623,Source 2 Under Voltage Pickup,
-624,Source 2 Over Voltage Dropout,
-625,Source 2 Over Voltage Pickup,
-626,Source 2 Under Frequency Dropout,
-627,Source 2 Under Frequency Pickup,
-628,Source 2 Over Frequency Dropout,
-629,Source 2 Over Frequency Pickup,
-630,Source 2 Warmup,
-631,Source 2 Minimum Run,
-632,Source 2 Cooldown,
-633,Source 2 Unbalance Drop,
-634,Source 2 Unbalance Pickup,
-650,Exercise Seconds,Exercise seconds
-651,Exercise Type,0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week
-652,Exercise Day,1-7 is day for weekly and 1st-4th week types; 1-14 for biweekly; Date (1-28) for monthly
-653,Exercise Hour,
-654,Exercise Minute,
-655,Exercise Duration,
-656,Exercise Xfer,"0 for no exercise, 1 for yes"
-700,Nominal Voltage,0 = 208V; 1 = 240V; 2 = 480V; 3 = 600V
-701,Nominal Frequency,0 = 50Hz; 1 = 60Hz
-702,Number Of Phases,0 = Single Phase; 1 = 3 phase
-703,Primary Source,0 = Source 1; 1 = Source 2
-704,CT Ratio,0 = 100:1; 1 = 200:1; 2 = 400:1; 3 = 600:1
-705,Heater Temperature Setpoint,
-706,Heater Humidity Setpoint,
+register,function,bit_or_note,status,confidence,observed_value_examples,working_guess
+100,Security Register,"Accessible from write single register (0x06)",known,high,,Security/unlock command register
+101,Security Level,"Current unlocked security level",known,high,,Current unlocked security level/status
+500,ATS Status,"0: Source 1 OK; 1: Source 2 OK; 2: On Primary Source; 3: PS Loss Delay; 4: Wait for Secondary Source OK; 5: Signal before transfer to Secondary Source; 6: Operate to Time Delay Neutral (destination Secondary Source); 7: Syncing (destination Secondary Source); 8: Operating to Secondary Source; 9: On Secondary Source; 10: Primary Return Delay; 11: Signal before transfer to Primary Source; 12: Operating to Neutral (destination Primary Source); 13: Syncing (destination Primary Source); 14: Operating contact to Primary Source",known,high,"512","Bit 9 set in scans -> On Secondary Source"
+501,ATS Timer,"In seconds",known,high,"0",ATS timer seconds
+502,Contactor Status,"0: Contactor in S1; 1: Contactor in S2; 2: Contactor in Neutral",known,high,"4","Bit 2 set in scans -> Contactor in Neutral"
+503,S1 Engine Status,"11-0: Engine timer seconds; 12: Engine Warmup; 13: Engine Minimum Run; 14: Engine Cooldown",known,high,"0",Source 1 engine status/timer bits
+504,S2 Engine Status,"11-0: Engine timer seconds; 12: Engine Warmup; 13: Engine Minimum Run; 14: Engine Cooldown",known,medium,"65535","May indicate unavailable/invalid/not implemented on this unit"
+505,ATS Test Status,"0: Normal Test Asserted; 2: Fast Test Asserted",known,high,"0",ATS test status bits
+506,Exercise Timer (seconds),"",known,high,"0",Exercise timer seconds
+507,ATS TVSS Status,"Bit 5: TVSS failure",known,high,"0",TVSS status bits
+508,S1AB Voltage * 100,"",known,high,"1085;1080;1087",Live analog value
+509,S1BC Voltage * 100,"",known,high,"1081;1073;1074",Live analog value
+510,S1AC Voltage * 100,"",known,high,"0",Live analog value
+511,S2AB Voltage * 100,"",known,high,"1028;1024;1033",Live analog value
+512,S2BC Voltage * 100,"",known,high,"1045;1044",Live analog value
+513,S2AC Voltage * 100,"",known,high,"0",Live analog value
+514,Load Current A * 10,"",known,high,"0",Load current A
+515,Load Current B * 10,"",known,high,"0",Load current B
+516,Load Current C * 10,"",known,high,"0",Load current C
+517,Load Current N * 10,"",known,high,"0",Load current neutral
+518,S1 kW * 10,"",known,high,"0",Source 1 power
+519,S2 kW * 10,"",known,high,"0",Source 2 power
+520,S1 kWh * 10,"",known,high,"0",Source 1 energy
+521,S2 kWh * 10,"",known,high,"0",Source 2 energy
+522,S1 Frequency * 10,"",known,high,"0",Source 1 frequency
+523,S2 Frequency * 10,"",known,high,"0",Source 2 frequency
+524,Temperature (°C) * 100,"",known,high,"3021;3023",Ambient/controller temperature
+525,Humidity (%) * 100,"",known,high,"4618;4611;4593",Ambient/controller humidity
+526,Unknown live analog 1A,"",guessed,low,"1276;1283;1287",Likely paired live measurement channel
+527,Unknown live analog 1B,"",guessed,low,"237;232;237",Likely paired live measurement channel
+528,Unknown live analog 2A,"",guessed,low,"1264;1268;1272",Likely paired live measurement channel
+529,Unknown live analog 2B,"",guessed,low,"269;273",Likely paired live measurement channel
+530,Unknown live analog 3A,"",guessed,low,"1264;1271;1267",Likely paired live measurement channel
+531,Unknown live analog 3B,"",guessed,low,"269",Likely paired live measurement channel
+532,Unknown / reserved,"",guessed,low,"0",Possibly unused or reserved
+600,Primary Source Loss Time,"",known,high,"3",ATS program value
+601,Primary Source Return Time,"",known,high,"120",ATS program value
+602,Time Delay Neutral Value,"",known,high,"2",ATS program value
+603,In phase Transfer,"1 for yes, 0 for no",known,high,"0",ATS program value
+604,Signal Before Transfer,"",known,high,"30",ATS program value
+605,Unbalance Check,"",known,high,"1",ATS program value
+606,Unbalance Time,"",known,high,"20",ATS program value
+607,Source 1 Is Engine,"1 for yes, 0 for no",known,high,"0",ATS program value
+608,Source 1 Under Voltage Dropout,"",known,high,"85",ATS program value
+609,Source 1 Under Voltage Pickup,"",known,high,"90",ATS program value
+610,Source 1 Over Voltage Dropout,"",known,high,"110",ATS program value
+611,Source 1 Over Voltage Pickup,"",known,high,"105",ATS program value
+612,Source 1 Under Frequency Dropout,"",known,high,"90",ATS program value
+613,Source 1 Under Frequency Pickup,"",known,high,"95",ATS program value
+614,Source 1 Over Frequency Dropout,"",known,high,"105",ATS program value
+615,Source 1 Over Frequency Pickup,"",known,high,"102",ATS program value
+616,Source 1 Warmup,"",known,high,"3",ATS program value
+617,Source 1 Minimum Run,"",known,high,"1200",ATS program value
+618,Source 1 Cooldown,"",known,high,"300",ATS program value
+619,Source 1 Unbalance Drop,"",known,high,"5",ATS program value
+620,Source 1 Unbalance Pickup,"",known,high,"3",ATS program value
+621,Source 2 Is Engine,"1 for yes, 0 for no",known,high,"1",ATS program value
+622,Source 2 Under Voltage Dropout,"",known,high,"85",ATS program value
+623,Source 2 Under Voltage Pickup,"",known,high,"90",ATS program value
+624,Source 2 Over Voltage Dropout,"",known,high,"110",ATS program value
+625,Source 2 Over Voltage Pickup,"",known,high,"105",ATS program value
+626,Source 2 Under Frequency Dropout,"",known,high,"90",ATS program value
+627,Source 2 Under Frequency Pickup,"",known,high,"95",ATS program value
+628,Source 2 Over Frequency Dropout,"",known,high,"105",ATS program value
+629,Source 2 Over Frequency Pickup,"",known,high,"102",ATS program value
+630,Source 2 Warmup,"",known,high,"3",ATS program value
+631,Source 2 Minimum Run,"",known,high,"300",ATS program value
+632,Source 2 Cooldown,"",known,high,"300",ATS program value
+633,Source 2 Unbalance Drop,"",known,high,"5",ATS program value
+634,Source 2 Unbalance Pickup,"",known,high,"3",ATS program value
+635,Unknown ATS config 1,"",guessed,low,"60",Likely additional ATS timing/config parameter
+636,Unknown ATS config 2,"",guessed,low,"0",Likely flag/enable/config parameter
+637,Unknown ATS config 3,"",guessed,low,"5",Likely retry/debounce/config parameter
+638,Unknown ATS config 4,"",guessed,low,"30",Likely additional ATS timing/config parameter
+650,Exercise Seconds,"Exercise seconds",known,high,"0",Exercise settings
+651,Exercise Type,"0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week",known,high,"1",Exercise settings
+652,Exercise Day,"1-7 is day for weekly and 1st-4th week types; 1-14 for biweekly; Date (1-28) for monthly",known,high,"3",Exercise settings
+653,Exercise Hour,"",known,high,"9",Exercise settings
+654,Exercise Minute,"",known,high,"0",Exercise settings
+655,Exercise Duration,"",known,high,"20",Exercise settings
+656,Exercise Xfer,"0 for no exercise, 1 for yes",known,high,"1",Exercise settings
+700,Nominal Voltage,"0 = 208V; 1 = 240V; 2 = 480V; 3 = 600V",known,high,"1",ATS settings
+701,Nominal Frequency,"0 = 50Hz; 1 = 60Hz",known,high,"1",ATS settings
+702,Number Of Phases,"0 = Single Phase; 1 = 3 phase",known,high,"0",ATS settings
+703,Primary Source,"0 = Source 1; 1 = Source 2",known,high,"0",ATS settings
+704,CT Ratio,"0 = 100:1; 1 = 200:1; 2 = 400:1; 3 = 600:1",known,high,"1",ATS settings
+705,Heater Temperature Setpoint,"",known,medium,"65535",Likely disabled/unset/not used on this unit
+706,Heater Humidity Setpoint,"",known,medium,"0",Likely disabled/unset on this unit
+707,Unknown heater/environment setting 1,"",guessed,low,"0",Likely heater/environment flag or mode
+708,Unknown heater/environment setting 2,"",guessed,low,"11",Likely heater/environment threshold or mode
