@@ -144,7 +144,7 @@ def write_single_register(ser, slave: int, register: int, value: int, allow_valu
     return echoed_reg, echoed_val
 
 
-def scan_registers(port, baud, slave, function_code, start, count, chunk_size, timeout, pause, unlock_register=None, unlock_value=None, verify_register=None):
+def scan_registers(port, baud, slave, function_code, start, count, chunk_size, timeout, pause, unlock_register=None, unlock_value=None, verify_register=None, fallback_single=False):
     result = {}
     errors = {}
     total_chunks = (count + chunk_size - 1) // chunk_size
@@ -188,20 +188,28 @@ def scan_registers(port, baud, slave, function_code, start, count, chunk_size, t
                 pct = (processed_registers / count) * 100 if count else 100
                 print(f"  OK: {qty} regs read | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
             except Exception as e:
-                print(f"  Chunk read failed: {e} | falling back to single-register reads", flush=True)
-                for single in range(reg, reg + qty):
-                    try:
-                        values = read_chunk(ser, slave, function_code, single, 1)
-                        result[single] = values[0]
+                if fallback_single:
+                    print(f"  Chunk read failed: {e} | falling back to single-register reads", flush=True)
+                    for single in range(reg, reg + qty):
+                        try:
+                            values = read_chunk(ser, slave, function_code, single, 1)
+                            result[single] = values[0]
+                            processed_registers += 1
+                            pct = (processed_registers / count) * 100 if count else 100
+                            print(f"    OK reg {single}: {values[0]} (0x{values[0]:04X}) | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
+                        except Exception as e2:
+                            errors[single] = str(e2)
+                            processed_registers += 1
+                            pct = (processed_registers / count) * 100 if count else 100
+                            print(f"    SKIP reg {single}: {e2} | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
+                        time.sleep(pause)
+                else:
+                    print(f"  Chunk read failed: {e} | skipping chunk", flush=True)
+                    for single in range(reg, reg + qty):
+                        errors[single] = str(e)
                         processed_registers += 1
-                        pct = (processed_registers / count) * 100 if count else 100
-                        print(f"    OK reg {single}: {values[0]} (0x{values[0]:04X}) | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
-                    except Exception as e2:
-                        errors[single] = str(e2)
-                        processed_registers += 1
-                        pct = (processed_registers / count) * 100 if count else 100
-                        print(f"    SKIP reg {single}: {e2} | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
-                    time.sleep(pause)
+                    pct = (processed_registers / count) * 100 if count else 100
+                    print(f"  SKIPPED {qty} regs | progress {processed_registers}/{count} ({pct:.1f}%)", flush=True)
             reg += qty
             remaining -= qty
             time.sleep(pause)
@@ -259,6 +267,7 @@ def main():
     parser.add_argument("--unlock-value", type=int, default=3219, help="unlock/security code to write before reads")
     parser.add_argument("--verify-register", type=int, default=101, help="optional register to read after unlock")
     parser.add_argument("--no-unlock", action="store_true", help="skip the initial unlock write")
+    parser.add_argument("--fallback-single", action="store_true", help="on chunk failure, retry one register at a time instead of skipping the chunk")
     args = parser.parse_args()
 
     slave = int(str(args.slave), 0)
@@ -281,6 +290,7 @@ def main():
             unlock_register=(None if args.no_unlock else args.unlock_register),
             unlock_value=(None if args.no_unlock else args.unlock_value),
             verify_register=(None if args.no_unlock else args.verify_register),
+            fallback_single=args.fallback_single,
         )
 
         print_snapshot(snapshot, previous=previous, changes_only=(args.watch and previous is not None))
