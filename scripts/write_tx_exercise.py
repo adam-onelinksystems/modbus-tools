@@ -85,9 +85,8 @@ def build_write_single_request(slave: int, register: int, value: int) -> bytes:
 
 
 def parse_response(resp: bytes, slave: int, function_code: int, quantity: int):
-    expected_len = 5 + quantity * 2
-    if len(resp) != expected_len:
-        raise ValueError(f"short/long response: got {len(resp)} bytes expected {expected_len}")
+    if len(resp) < 5:
+        raise ValueError(f"short response: got {len(resp)} bytes")
 
     body = resp[:-2]
     rx_crc = resp[-2] | (resp[-1] << 8)
@@ -103,6 +102,10 @@ def parse_response(resp: bytes, slave: int, function_code: int, quantity: int):
         raise ValueError(f"modbus exception fc=0x{fc:02X} code=0x{code:02X}")
     if fc != function_code:
         raise ValueError(f"unexpected function code 0x{fc:02X}")
+
+    expected_len = 5 + quantity * 2
+    if len(resp) != expected_len:
+        raise ValueError(f"short/long response: got {len(resp)} bytes expected {expected_len}")
 
     byte_count = body[2]
     if byte_count != quantity * 2:
@@ -180,7 +183,10 @@ def read_exercise_regs(port: str, baud: int, slave: int, timeout: float):
             timeout=timeout,
         ) as ser:
             for register in range(650, 657):
-                values.append(read_reg(ser, slave, register))
+                try:
+                    values.append(read_reg(ser, slave, register))
+                except Exception as reg_err:
+                    raise ValueError(f"register {register} read failed: {reg_err}") from reg_err
         return values
 
 
