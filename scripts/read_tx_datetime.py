@@ -179,16 +179,16 @@ def main():
     parser.add_argument("--baud", type=int, default=9600)
     parser.add_argument("--timeout", type=float, default=0.2)
     parser.add_argument("--set", dest="set_datetime", help="Set controller datetime as YYYY-MM-DDTHH:MM:SS")
-    parser.add_argument("--weekday", type=int, help="Weekday code low byte for register 201 (required with --set)")
+    parser.add_argument("--weekday", type=int, help="Optional weekday code low byte for register 201; if omitted, preserve controller's current weekday byte")
     args = parser.parse_args()
 
     slave = int(str(args.slave), 0)
 
     if args.set_datetime:
-        if args.weekday is None:
-            raise SystemExit("--weekday is required with --set")
         new_dt = dt.datetime.fromisoformat(args.set_datetime)
-        reg200, reg201, reg202, reg203 = encode_regs(new_dt, args.weekday)
+        current200, current201, current202, current203 = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
+        weekday_code = (current201 & 0xFF) if args.weekday is None else args.weekday
+        reg200, reg201, reg202, reg203 = encode_regs(new_dt, weekday_code)
         with serial.Serial(
             port=args.port,
             baudrate=args.baud,
@@ -205,6 +205,8 @@ def main():
                     print(f"Wrote reg {register} = 0x{value:04X} (matching echo)")
                 else:
                     print(f"Wrote reg {register} = 0x{value:04X} (controller echoed 0x{echoed_val:04X})")
+        if args.weekday is None:
+            print(f"No --weekday provided; preserved existing controller weekday code {weekday_code}")
         print("Verifying by reading back 200-203...")
 
     reg200, reg201, reg202, reg203 = read_regs(args.port, args.baud, slave, 200, 4, args.timeout)
