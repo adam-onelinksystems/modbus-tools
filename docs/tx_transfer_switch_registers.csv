@@ -1,6 +1,7 @@
 register,function,bit_or_note,status,confidence,observed_value_examples,working_guess
 100,Security Register,"Accessible from write single register (0x06)",known,high,,Security/unlock command register
-101,Security Level,"Current unlocked security level",known,high,,Current unlocked security level/status
+101,Security Level,"Current unlocked security level",known,high,"3",Current unlocked security level/status
+102,Unknown security/metadata field,"Readable adjacent to security registers",guessed,low,"290",Unknown security-related or controller metadata field
 200,RTC Date Field A (year/month),"Packed bytes: high=2-digit year low=month",known,high,"0x1A03 -> 2026/03; 0x1F03 -> 2031/03",Controller RTC date year/month field
 201,RTC Date Field B (day/weekday),"Packed bytes: high=day-of-month low=weekday code",known,high,"0x0F01 -> 15/Sunday; 0x0F07 -> 15/weekday7",Controller RTC date companion field with weekday code
 202,RTC Time (hour/minute),"Packed bytes: high=hour low=minute",known,high,"0x0D05 -> 13:05; 0x0D09 -> 13:09; 0x0D14 -> 13:20",Controller RTC time hour/minute
@@ -29,15 +30,17 @@ register,function,bit_or_note,status,confidence,observed_value_examples,working_
 521,S2 kWh * 10,"",known,high,"0",Source 2 energy
 522,S1 Frequency * 10,"",known,high,"0",Source 1 frequency
 523,S2 Frequency * 10,"",known,high,"0",Source 2 frequency
-524,Temperature (°C) * 100,"",known,high,"3021;3023",Ambient/controller temperature
-525,Humidity (%) * 100,"",known,high,"4618;4611;4593",Ambient/controller humidity
-526,Unknown live electrical 1A,"",guessed,medium,"1276;1283;1287;1272",Likely phase-related live electrical telemetry channel
-527,Unknown live electrical 1B,"",guessed,medium,"237;232;242;227",Likely phase-related live electrical telemetry channel
-528,Unknown live electrical 2A,"",guessed,medium,"1264;1268;1272;1270",Likely phase-related live electrical telemetry channel
-529,Unknown live electrical 2B,"",guessed,medium,"269;273",Likely phase-related live electrical telemetry channel
-530,Unknown live electrical 3A,"",guessed,medium,"1264;1271;1267;1268",Likely phase-related live electrical telemetry channel
-531,Unknown live electrical 3B,"",guessed,medium,"269;265;273",Likely phase-related live electrical telemetry channel
+524,Temperature (°C) * 100,"",known,high,"3021;3023;2978",Ambient/controller temperature
+525,Humidity (%) * 100,"",known,high,"4618;4611;4593;4788",Ambient/controller humidity
+526,Unknown live electrical 1A,"",guessed,medium,"1276;1283;1287;1272;1266",Likely phase-related live electrical telemetry channel
+527,Unknown live electrical 1B,"",guessed,medium,"237;232;242;227;216",Likely phase-related live electrical telemetry channel
+528,Unknown live electrical 2A,"",guessed,medium,"1264;1268;1272;1270;1252",Likely phase-related live electrical telemetry channel
+529,Unknown live electrical 2B,"",guessed,medium,"269;273;265",Likely phase-related live electrical telemetry channel
+530,Unknown live electrical 3A,"",guessed,medium,"1264;1271;1267;1268;1251",Likely phase-related live electrical telemetry channel
+531,Unknown live electrical 3B,"",guessed,medium,"269;265;273;260",Likely phase-related live electrical telemetry channel
 532,Reserved / unused live channel,"",guessed,medium,"0",Appears unused or reserved across scans
+533,Unknown live/status field,"Readable but observed as 0 so far",guessed,low,"0",Unknown live or status field adjacent to telemetry block
+534,Unknown live/status field,"Readable and nonzero in direct scan",guessed,low,"285",Unknown live or status field adjacent to telemetry block
 600,Primary Source Loss Time,"",known,high,"3",ATS program value
 601,Primary Source Return Time,"",known,high,"120",ATS program value
 602,Time Delay Neutral Value,"",known,high,"2",ATS program value
@@ -77,6 +80,7 @@ register,function,bit_or_note,status,confidence,observed_value_examples,working_
 636,Unknown ATS config 2,"",guessed,low,"0",Likely flag/enable/config parameter
 637,Unknown ATS config 3,"",guessed,low,"5",Likely retry/debounce/config parameter
 638,Unknown ATS config 4,"",guessed,low,"30",Likely additional ATS timing/config parameter
+639,Unknown ATS config 5,"Readable but observed as 0 so far",guessed,low,"0",Likely additional ATS timing/config flag or reserved field
 650,Exercise Seconds,"Exercise seconds",known,high,"0",Exercise settings
 651,Exercise Type,"0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week",known,high,"1",Exercise settings
 652,Exercise Day,"1-7 is day for weekly and 1st-4th week types; 1-14 for biweekly; Date (1-28) for monthly",known,high,"3",Exercise settings
