@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""
+Control the TX transfer switch remote-start request over Modbus RTU.
+
+Engineering map:
+  639 = Remote Start Request
+      1 = Remote Start Request Active
+      0 = Remote Start Request Inactive
+
+Writes use the controller unlock register first:
+  100 = security/unlock register
+  value 3219 = confirmed unlock code for this controller
+
+Examples:
+  python3 control_tx_remote_start.py --status
+  python3 control_tx_remote_start.py --start
+  python3 control_tx_remote_start.py --stop
+"""
+
+import argparse
+import sys
+import time
+
+try:
+    import serial
+except ImportError:
+    print("Missing dependency: pyserial\nInstall with: pip install pyserial", file=sys.stderr)
+    sys.exit(2)
+
+UNLOCK_REGISTER = 100
+UNLOCK_VALUE = 3219
+REMOTE_START_REGISTER = 639
+
+
+def modbus_crc(data: bytes) -> int:
+    crc = 0xFFFF
+    for b in data:
+        crc ^= b
+        for _ in range(8):
+            if crc & 1:
+                crc = (crc >> 1) ^ 0xA001
+            else:
+                crc >>= 1
+    return crc & 0xFFFF
+
+
+def build_request(slave: int, function_code: int, start_reg: int, quantity: int) -> bytes:
+    payload = bytes([
+        slave & 0xFF,
+        function_code & 0xFF,
+        (start_reg >> 8) & 0xFF,
+        start_reg & 0xFF,
+        (quantity >> 8) & 0xFF,
+        quantity & 0xFF,
+    ])
+    crc = modbus_crc(payload)
+    return payload + bytes([crc & 0xFF, (crc >> 8) & 0xFF])
+
+
+def build_write_single_request(slave: int, register: int, value: int) -> bytes:
+    payload = bytes([
+        slave & 0xFF,
+        0x06,
+        (register >> 8) & 0xFF,
+        register & 0xFF,
+        (value >> 8) & 0xFF,
+        value & 0xFF,
+    ])
+    crc = modbus_crc(payload)
+    return payload + bytes([crc & 0xFF, (crc >> 8) & 0xFF])
+
+
+def parse_response(resp: bytes, slave: int, function_code: int, quantity: int):
+    expected_len = 5 + quantity * 2
+    if len(resp) != expected_len:
+        raise ValueError(f"short/long response: got {len(resp)} bytes expected {expected_len}")
+    body = resp[:-2]
+    rx_crc = resp[-2] | (resp[-1] << 8)
+    calc_crc = modbus_crc(body)
+    if rx_crc != calc_crc:
+        raise ValueError(f"crc mismatch rx=0x{rx_crc:04X} calc=0x{calc_crc:04X}")
+    if body[0] != (slave & 0xFF):
+        raise ValueError(f"unexpected slave 0x{body[0]:02X}")
+    fc = body[1]
+    if fc & 0x80:
+        code = body[2] if len(body) > 2 else None
+        raise ValueError(f"modbus exception fc=0x{fc:02X} code=0x{code:02X}")
+    if fc != function_code:
+        raise ValueError(f"unexpected function code 0x{fc:02X}")
+    byte_count = body[2]
+    if byte_count != quantity * 2:
+        raise ValueError(f"unexpected byte count {byte_count}")
+    data = body[3:]
+    regs = []
+    for i in range(0, len(data), 2):
+        regs.append((data[i] << 8) | data[i + 1])
+    return regs
+
+
+def parse_write_response(resp: bytes, slave: int, register: int, value: int, allow_value_mismatch: bool = False):
+    expected_len = 8
+    if len(resp) != expected_len:
+        raise ValueError(f"short/long write response: got {len(resp)} bytes expected {expected_len}")
+    body = resp[:-2]
+    rx_crc = resp[-2] | (resp[-1] << 8)
+    calc_crc = modbus_crc(body)
+    if rx_crc != calc_crc:
+        raise ValueError(f"write crc mismatch rx=0x{rx_crc:04X} calc=0x{calc_crc:04X}")
+    if body[0] != (slave & 0xFF):
+        raise ValueError(f"unexpected write slave 0x{body[0]:02X}")
+    if body[1] & 0x80:
+        code = body[2] if len(body) > 2 else None
+        raise ValueError(f"write modbus exception fc=0x{body[1]:02X} code=0x{code:02X}")
+    echoed_reg = (body[2] << 8) | body[3]
+    echoed_val = (body[4] << 8) | body[5]
+    if echoed_reg != register:
+        raise ValueError(f"write echo register mismatch reg=0x{echoed_reg:04X}")
+    if (not allow_value_mismatch) and echoed_val != value:
+        raise ValueError(f"write echo mismatch reg=0x{echoed_reg:04X} val=0x{echoed_val:04X}")
+    return echoed_reg, echoed_val
+
+
+def read_regs(port: str, baud: int, slave: int, start_reg: int, count: int, timeout: float):
+    req = build_request(slave, 3, start_reg, count)
+    expected_len = 5 + count * 2
+    with serial.Serial(
+        port=port,
+        baudrate=baud,
+        bytesize=serial.EIGHTBITS,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        timeout=timeout,
+    ) as ser:
+        ser.reset_input_buffer()
+        ser.write(req)
+        ser.flush()
+        resp = ser.read(expected_len)
+    return parse_response(resp, slave, 3, count)
+
+
+def write_single(ser, slave: int, register: int, value: int, allow_value_mismatch: bool = False):
+    req = build_write_single_request(slave, register, value)
+    ser.reset_input_buffer()
+    ser.write(req)
+    ser.flush()
+    resp = ser.read(8)
+    return parse_write_response(resp, slave, register, value, allow_value_mismatch=allow_value_mismatch)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Control TX transfer switch remote-start request")
+    parser.add_argument("--port", default="/dev/tty.usbserial-FT4WX7ID")
+    parser.add_argument("--slave", default="240", help="decimal or hex slave id")
+    parser.add_argument("--baud", type=int, default=9600)
+    parser.add_argument("--timeout", type=float, default=0.2)
+    parser.add_argument("--status", action="store_true", help="read remote-start request status only")
+    parser.add_argument("--start", action="store_true", help="set remote-start request active (write 1 to reg 639)")
+    parser.add_argument("--stop", action="store_true", help="clear remote-start request (write 0 to reg 639)")
+    args = parser.parse_args()
+
+    requested = sum(1 for flag in (args.status, args.start, args.stop) if flag)
+    if requested != 1:
+        raise SystemExit("choose exactly one of --status, --start, or --stop")
+
+    slave = int(str(args.slave), 0)
+
+    if args.start or args.stop:
+        value = 1 if args.start else 0
+        with serial.Serial(
+            port=args.port,
+            baudrate=args.baud,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=args.timeout,
+        ) as ser:
+            _, unlock_echo = write_single(ser, slave, UNLOCK_REGISTER, UNLOCK_VALUE, allow_value_mismatch=True)
+            print(f"Unlock write sent to reg {UNLOCK_REGISTER}; controller echoed value 0x{unlock_echo:04X}")
+            _, echoed_val = write_single(ser, slave, REMOTE_START_REGISTER, value, allow_value_mismatch=True)
+            action = 'start' if value == 1 else 'stop'
+            print(f"Sent remote {action} request to reg {REMOTE_START_REGISTER} = {value} (controller echoed 0x{echoed_val:04X})")
+        print("Waiting 1 second before verification...")
+        time.sleep(1.0)
+
+    reg639 = read_regs(args.port, args.baud, slave, REMOTE_START_REGISTER, 1, args.timeout)[0]
+    status = 'ACTIVE' if reg639 == 1 else 'INACTIVE'
+    print(f"Remote Start Request: reg {REMOTE_START_REGISTER} = {reg639} ({status})")
+
+
+if __name__ == "__main__":
+    main()
