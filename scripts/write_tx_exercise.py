@@ -19,6 +19,7 @@ Examples:
   python3 write_tx_exercise.py
   python3 write_tx_exercise.py --set --type 1 --day 3 --hour 9 --minute 0 --duration 20 --xfer 1
   python3 write_tx_exercise.py --set --type 3 --day 15 --hour 14 --minute 30 --duration 10 --xfer 0
+  python3 write_tx_exercise.py --set --type 8
 """
 
 import argparse
@@ -43,6 +44,7 @@ EXERCISE_TYPE_MAP = {
     5: "Second Week",
     6: "Third Week",
     7: "Fourth Week",
+    8: "Off",
 }
 
 
@@ -218,11 +220,11 @@ def main():
     parser.add_argument("--baud", type=int, default=9600)
     parser.add_argument("--timeout", type=float, default=0.2)
     parser.add_argument("--set", action="store_true", help="write exercise settings")
-    parser.add_argument("--type", type=int, choices=range(0, 8), help="exercise type (0-7)")
-    parser.add_argument("--day", type=int, help="exercise day/date value for reg 652")
+    parser.add_argument("--type", type=int, choices=range(0, 9), help="exercise type (0=Daily, 1=Weekly, 2=Bi Weekly, 3=Monthly, 4=First Week, 5=Second Week, 6=Third Week, 7=Fourth Week, 8=Off)")
+    parser.add_argument("--day", type=int, help="exercise day/date value for reg 652 (weekly/1st-4th week: 1-7, biweekly: 1-14, monthly: 1-28)")
     parser.add_argument("--hour", type=int, help="exercise hour for reg 653")
     parser.add_argument("--minute", type=int, help="exercise minute for reg 654")
-    parser.add_argument("--duration", type=int, help="exercise duration for reg 655")
+    parser.add_argument("--duration", type=int, help="exercise duration for reg 655 (minimum 5 minutes, maximum 10 hours per engineering map)")
     parser.add_argument("--xfer", type=int, choices=[0, 1], help="exercise transfer flag for reg 656")
     args = parser.parse_args()
 

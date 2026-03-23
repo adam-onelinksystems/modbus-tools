@@ -2,11 +2,14 @@
 """
 Read or write the current date/time on a TX transfer switch controller over Modbus RTU.
 
-RTC block discovered from field scans:
+RTC block discovered from field scans and later confirmed by the engineering map:
   200 = packed year/month  (high byte = 2-digit year, low byte = month)
-  201 = packed day/weekday (high byte = day-of-month, low byte = weekday code)
+  201 = packed day/weekday (high byte = day-of-month, low byte = weekday code; 1=Sun, 7=Sat)
   202 = packed hour/minute (high byte = hour, low byte = minute)
   203 = seconds
+
+Engineering documentation marks 200-203 as view-only, but field testing on this controller
+confirmed that writes do work after unlocking with register 100 / value 3219.
 
 Writes use the controller unlock register first:
   100 = security/unlock register
@@ -180,7 +183,7 @@ def main():
     parser.add_argument("--baud", type=int, default=9600)
     parser.add_argument("--timeout", type=float, default=0.2)
     parser.add_argument("--set", dest="set_datetime", help="Set controller datetime as YYYY-MM-DDTHH:MM:SS")
-    parser.add_argument("--weekday", type=int, help="Optional weekday code low byte for register 201; if omitted, preserve controller's current weekday byte")
+    parser.add_argument("--weekday", type=int, help="Optional weekday code low byte for register 201 (engineering map says 1=Sun .. 7=Sat); if omitted, preserve controller's current weekday byte")
     args = parser.parse_args()
 
     slave = int(str(args.slave), 0)

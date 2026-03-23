@@ -1,23 +1,23 @@
 register,function,bit_or_note,status,confidence,observed_value_examples,working_guess
 100,Security Register,"Accessible from write single register (0x06)",known,high,,Security/unlock command register
 101,Security Level,"Current unlocked security level",known,high,"3",Current unlocked security level/status
-102,Unknown security/metadata field,"Readable adjacent to security registers",guessed,low,"290",Unknown security-related or controller metadata field
-200,RTC Date Field A (year/month),"Packed bytes: high=2-digit year low=month",known,high,"0x1A03 -> 2026/03; 0x1F03 -> 2031/03",Controller RTC date year/month field
-201,RTC Date Field B (day/weekday),"Packed bytes: high=day-of-month low=weekday code",known,high,"0x0F01 -> 15/Sunday; 0x0F07 -> 15/weekday7",Controller RTC date companion field with weekday code
-202,RTC Time (hour/minute),"Packed bytes: high=hour low=minute",known,high,"0x0D05 -> 13:05; 0x0D09 -> 13:09; 0x0D14 -> 13:20",Controller RTC time hour/minute
-203,RTC Seconds,"0-59 seconds counter",known,high,"4; 9; 15; 55; 1; 7",Controller RTC seconds
-500,ATS Status,"0: Source 1 OK; 1: Source 2 OK; 2: On Primary Source; 3: PS Loss Delay; 4: Wait for Secondary Source OK; 5: Signal before transfer to Secondary Source; 6: Operate to Time Delay Neutral (destination Secondary Source); 7: Syncing (destination Secondary Source); 8: Operating to Secondary Source; 9: On Secondary Source; 10: Primary Return Delay; 11: Signal before transfer to Primary Source; 12: Operating to Neutral (destination Primary Source); 13: Syncing (destination Primary Source); 14: Operating contact to Primary Source",known,high,"512","Bit 9 set in scans -> On Secondary Source"
+102,FW Version,"Major high byte, minor low byte",known,high,"290 (0x0122)",Firmware version field per engineering map
+200,Time Year Month,"High byte year, low byte month",known,high,"0x1A03 -> 2026/03; 0x1F03 -> 2031/03",Controller RTC date year/month field; engineering sheet marks viewable-only but live writes were accepted after unlock
+201,Time Date Day,"High byte date, low byte day (1=Sun, 7=Sat)",known,high,"0x0F01 -> 15/Sunday; 0x1705 -> 23/weekday5; 0x0F07 -> 15/Saturday",Controller RTC date companion field with weekday code; engineering sheet marks viewable-only but live writes were accepted after unlock
+202,Time Hour Minute,"High byte hour (24 hr), low byte minute",known,high,"0x0D05 -> 13:05; 0x0D27 -> 13:39; 0x1107 -> 17:07",Controller RTC time hour/minute; engineering sheet marks viewable-only but live writes were accepted after unlock
+203,Time Second,"Second",known,high,"4; 9; 15; 55; 1; 34",Controller RTC seconds; engineering sheet marks viewable-only but live writes were accepted after unlock
+500,ATS Status,"0: Source 1 OK; 1: Source 2 OK; 2: On Primary Source; 3: PS Loss Delay; 4: Wait for Secondary Source OK; 5: Signal before transfer to Secondary Source; 6: Operate to Time Delay Neutral (destination Secondary Source)/Hold in TDN; 7: Syncing (destination to Secondary Source); 8: Operating to Secondary Source; 9: On Secondary Source; 10: Primary Return Delay; 11: Signal before transfer to Primary Source; 12: Operating to Neutral (destination Primary Source); 13: Syncing (destination to Primary Source); 14: Operating contact to Primary Source; 15: Loadshed",known,high,"512",ATS state bitfield
 501,ATS Timer,"In seconds",known,high,"0",ATS timer seconds
-502,Contactor Status,"0: Contactor in S1; 1: Contactor in S2; 2: Contactor in Neutral",known,high,"4","Bit 2 set in scans -> Contactor in Neutral"
+502,Contactor Status,"0: Contactor in S1; 1: Contactor in S2; 2: Contactor in Neutral",known,high,"4",Contactor position bitfield
 503,S1 Engine Status,"11-0: Engine timer seconds; 12: Engine Warmup; 13: Engine Minimum Run; 14: Engine Cooldown",known,high,"0",Source 1 engine status/timer bits
-504,S2 Engine Status,"11-0: Engine timer seconds; 12: Engine Warmup; 13: Engine Minimum Run; 14: Engine Cooldown",known,medium,"65535","May indicate unavailable/invalid/not implemented on this unit"
+504,S2 Engine Status,"11-0: Engine timer seconds; 12: Engine Warmup; 13: Engine Minimum Run; 14: Engine Cooldown",known,medium,"65535",May indicate unavailable/invalid/not implemented on this unit
 505,ATS Test Status,"0: Normal Test Asserted; 2: Fast Test Asserted",known,high,"0",ATS test status bits
 506,Exercise Timer (seconds),"",known,high,"0",Exercise timer seconds
 507,ATS TVSS Status,"Bit 5: TVSS failure",known,high,"0",TVSS status bits
-508,S1AB Voltage * 100,"",known,high,"1085;1080;1087",Live analog value
-509,S1BC Voltage * 100,"",known,high,"1081;1073;1074",Live analog value
+508,S1AB Voltage * 100,"",known,high,"1085;1080;1087;1075",Live analog value
+509,S1BC Voltage * 100,"",known,high,"1081;1073;1074;1061",Live analog value
 510,S1AC Voltage * 100,"",known,high,"0",Live analog value
-511,S2AB Voltage * 100,"",known,high,"1028;1024;1033",Live analog value
+511,S2AB Voltage * 100,"",known,high,"1028;1024;1033;1025",Live analog value
 512,S2BC Voltage * 100,"",known,high,"1045;1044",Live analog value
 513,S2AC Voltage * 100,"",known,high,"0",Live analog value
 514,Load Current A * 10,"",known,high,"0",Load current A
@@ -32,15 +32,15 @@ register,function,bit_or_note,status,confidence,observed_value_examples,working_
 523,S2 Frequency * 10,"",known,high,"0",Source 2 frequency
 524,Temperature (°C) * 100,"",known,high,"3021;3023;2978",Ambient/controller temperature
 525,Humidity (%) * 100,"",known,high,"4618;4611;4593;4788",Ambient/controller humidity
-526,Unknown live electrical 1A,"",guessed,medium,"1276;1283;1287;1272;1266",Likely phase-related live electrical telemetry channel
-527,Unknown live electrical 1B,"",guessed,medium,"237;232;242;227;216",Likely phase-related live electrical telemetry channel
-528,Unknown live electrical 2A,"",guessed,medium,"1264;1268;1272;1270;1252",Likely phase-related live electrical telemetry channel
-529,Unknown live electrical 2B,"",guessed,medium,"269;273;265",Likely phase-related live electrical telemetry channel
-530,Unknown live electrical 3A,"",guessed,medium,"1264;1271;1267;1268;1251",Likely phase-related live electrical telemetry channel
-531,Unknown live electrical 3B,"",guessed,medium,"269;265;273;260",Likely phase-related live electrical telemetry channel
-532,Reserved / unused live channel,"",guessed,medium,"0",Appears unused or reserved across scans
-533,Unknown live/status field,"Readable but observed as 0 so far",guessed,low,"0",Unknown live or status field adjacent to telemetry block
-534,Unknown live/status field,"Readable and nonzero in direct scan",guessed,low,"285",Unknown live or status field adjacent to telemetry block
+526,S1 AN Voltage * 100,"",known,high,"1276;1283;1287;1272;1266",Source 1 phase-to-neutral voltage channel
+527,S1 BN Voltage * 100,"",known,high,"237;232;242;227;216",Source 1 second phase-to-neutral/derived voltage channel per engineering map naming
+528,S1 CN Voltage * 100,"",known,high,"1264;1268;1272;1270;1252",Source 1 third phase-to-neutral voltage channel
+529,S2 AN Voltage * 100,"",known,high,"269;273;265",Source 2 phase-to-neutral/derived voltage channel per engineering map naming
+530,S2 BN Voltage * 100,"",known,high,"1264;1271;1267;1268;1251",Source 2 second phase-to-neutral voltage channel
+531,S2 CN Voltage * 100,"",known,high,"269;265;273;260",Source 2 third phase-to-neutral/derived voltage channel per engineering map naming
+532,NOT IN AUTO LED,"",known,medium,"0",Status for Not In Auto indication
+533,Special Applications Info,"Bits 0-7: 1=G2G Mode, 2=3S G2G, 3=Auto Man Mode; Bits 8-15: 1=S1, 2=S2, 3=ALT/Auto, 4=OFF depending on mode",known,medium,"0",Special applications / mode info bitfield
+534,Battery Voltage,"Voltage x100 (3.7V = 370)",known,high,"285;314;334",Battery voltage field
 600,Primary Source Loss Time,"",known,high,"3",ATS program value
 601,Primary Source Return Time,"",known,high,"120",ATS program value
 602,Time Delay Neutral Value,"",known,high,"2",ATS program value
@@ -76,24 +76,24 @@ register,function,bit_or_note,status,confidence,observed_value_examples,working_
 632,Source 2 Cooldown,"",known,high,"300",ATS program value
 633,Source 2 Unbalance Drop,"",known,high,"5",ATS program value
 634,Source 2 Unbalance Pickup,"",known,high,"3",ATS program value
-635,Unknown ATS config 1,"",guessed,low,"60",Likely additional ATS timing/config parameter
-636,Unknown ATS config 2,"",guessed,low,"0",Likely flag/enable/config parameter
-637,Unknown ATS config 3,"",guessed,low,"5",Likely retry/debounce/config parameter
-638,Unknown ATS config 4,"",guessed,low,"30",Likely additional ATS timing/config parameter
-639,Unknown ATS config 5,"Readable but observed as 0 so far",guessed,low,"0",Likely additional ATS timing/config flag or reserved field
+635,Sync Timeout,"60 - 3600 seconds",known,high,"60",ATS program value
+636,Unknown ATS config 2,"",guessed,low,"0",Still unidentified in engineering sheet excerpt
+637,Unknown ATS config 3,"",guessed,low,"5",Still unidentified in engineering sheet excerpt
+638,Unknown ATS config 4,"",guessed,low,"30",Still unidentified in engineering sheet excerpt
+639,Remote Start Request,"1 = active, 0 = inactive",known,high,"0",Remote start request state/control
 650,Exercise Seconds,"Exercise seconds",known,high,"0",Exercise settings
-651,Exercise Type,"0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week",known,high,"1",Exercise settings
+651,Exercise Type,"0 = Daily; 1 = Weekly; 2 = Bi Weekly; 3 = Monthly; 4 = First Week; 5 = Second Week; 6 = Third Week; 7 = Fourth Week; 8 = Off",known,high,"1",Exercise settings
 652,Exercise Day,"1-7 is day for weekly and 1st-4th week types; 1-14 for biweekly; Date (1-28) for monthly",known,high,"3",Exercise settings
 653,Exercise Hour,"",known,high,"9",Exercise settings
 654,Exercise Minute,"",known,high,"0",Exercise settings
-655,Exercise Duration,"",known,high,"20",Exercise settings
+655,Exercise Duration,"Minimum of 5 minutes, 10 hours max",known,high,"20",Exercise settings
 656,Exercise Xfer,"0 for no exercise, 1 for yes",known,high,"1",Exercise settings
-700,Nominal Voltage,"0 = 208V; 1 = 240V; 2 = 480V; 3 = 600V",known,high,"1",ATS settings
+700,Nominal Voltage,"0=208V, 1=240V, 2=380V, 3=400V, 4=415V, 5=480V, 6=600V",known,high,"1",ATS settings
 701,Nominal Frequency,"0 = 50Hz; 1 = 60Hz",known,high,"1",ATS settings
 702,Number Of Phases,"0 = Single Phase; 1 = 3 phase",known,high,"0",ATS settings
 703,Primary Source,"0 = Source 1; 1 = Source 2",known,high,"0",ATS settings
 704,CT Ratio,"0 = 100:1; 1 = 200:1; 2 = 400:1; 3 = 600:1",known,high,"1",ATS settings
 705,Heater Temperature Setpoint,"",known,medium,"65535",Likely disabled/unset/not used on this unit
 706,Heater Humidity Setpoint,"",known,medium,"0",Likely disabled/unset on this unit
-707,Unknown heater/environment setting 1,"",guessed,low,"0",Likely heater/environment flag or mode
-708,Unknown heater/environment setting 2,"",guessed,low,"11",Likely heater/environment threshold or mode
+707,Permissive Fault Enable,"",known,high,"0",Permissive fault feature enable
+708,Permissive Fault Timeout,"11 - 120 seconds",known,high,"11",Permissive fault timeout
